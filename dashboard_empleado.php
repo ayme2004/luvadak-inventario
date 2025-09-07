@@ -48,8 +48,6 @@ $opciones = [
     ["reporte_mis_ventas_pdf.php", "📊", "Reporte Personal"],
     ["historial_clientes_empleado.php", "📁", "Historial del Cliente"],
     ["enviar_comentario.php", "💬", "Enviar Comentario"],
-    ["perfil.php", "👤", "Perfil"],
-    ["logout.php", "🚪", "Cerrar Sesión", "logout"],
 ];
 ?>
 <!DOCTYPE html>
