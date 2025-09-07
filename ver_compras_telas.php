@@ -13,7 +13,7 @@ if ($anio !== '')     { $condiciones[] = "YEAR(fecha_compra) = " . intval($anio)
 $whereSQL = count($condiciones) ? "WHERE " . implode(" AND ", $condiciones) : "";
 $res = $conexion->query("SELECT * FROM compras_telas $whereSQL ORDER BY fecha_compra DESC");
 
-/* Cargamos a memoria para poder renderizar 2 vistas (cards/table) y calcular totales una sola vez */
+/* Cargamos a memoria para renderizar cards/tabla y calcular totales una vez */
 $rows = [];
 $sumTotal = 0.0;
 if ($res) {
@@ -30,7 +30,7 @@ if ($res) {
 <head>
   <meta charset="UTF-8">
   <title>Historial de Compras de Telas - Luvadak</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <!-- Bootstrap + Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -38,7 +38,13 @@ if ($res) {
     :root{
       --bg:#f8fafc; --panel:#ffffff; --text:#0f172a; --muted:#667085; --border:#e6e9f2;
       --brand:#7c3aed; --brand2:#00d4ff; --radius:14px; --radius-lg:18px; --shadow:0 10px 26px rgba(16,24,40,.08);
+      --ring:rgba(124,58,237,.28);
+      --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
     }
+
+    /* Base */
+    *,*::before,*::after{ box-sizing:border-box }
+    html,body{ height:100% }
     body{
       background:
         radial-gradient(900px 520px at -10% -10%, rgba(124,58,237,.10), transparent 45%),
@@ -46,50 +52,115 @@ if ($res) {
         var(--bg);
       color:var(--text);
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding-bottom:max(8px, var(--safe-bottom));
     }
-    .wrap{ max-width:1200px; margin:28px auto; padding:0 16px }
+
+    /* Tipografía fluida y utilidades */
+    .fs-fluid-sm{ font-size:clamp(.95rem, .9rem + .4vw, 1.05rem) }
+    .fs-fluid-md{ font-size:clamp(1.02rem, .95rem + .7vw, 1.2rem) }
+    .fs-fluid-lg{ font-size:clamp(1.12rem, 1rem + 1vw, 1.45rem) }
+
+    .wrap{ max-width:1200px; margin:calc(18px + var(--safe-top)) auto 28px; padding:0 16px }
+
+    /* Hero (sticky en móvil) */
     .hero{
+      position:sticky; top:0; z-index:10;
       display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-      background:linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.98));
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.98));
       border:1px solid var(--border); border-radius:var(--radius-lg);
-      padding:16px; box-shadow:var(--shadow); margin-bottom:18px;
+      padding:12px 14px; box-shadow:var(--shadow); margin-bottom:16px;
+      backdrop-filter:saturate(120%) blur(6px);
     }
     .hero .icon{
-      width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;
+      width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#fff;
       background:linear-gradient(135deg, var(--brand), var(--brand2));
       box-shadow:0 12px 24px rgba(124,58,237,.25);
-      font-size:1.25rem;
+      font-size:1.2rem;
     }
-    .hero .title{ font-weight:800; font-size:1.25rem }
-    .hero .sub{ color:var(--muted) }
+    .hero .title{ font-weight:800 }
 
+    /* Botones accesibles */
+    .btn{
+      border-radius:999px; font-weight:800; border:1px solid var(--border);
+      display:inline-flex; align-items:center; gap:.45rem; letter-spacing:.2px;
+      transition:transform .15s ease, filter .15s ease, box-shadow .15s ease, background .15s ease;
+      box-shadow:0 4px 14px rgba(17,24,39,.06);
+    }
+    .btn:focus-visible{ outline:3px solid var(--ring); outline-offset:2px }
+    .btn-primary{
+      background:linear-gradient(135deg, var(--brand), var(--brand2));
+      border-color:transparent; color:#fff; box-shadow:0 8px 18px rgba(124,58,237,.25);
+    }
+    .btn-primary:hover{ filter:brightness(1.05); transform:translateY(-2px) }
+    .btn-secondary{ background:#fff; color:#0f172a }
+    .btn-secondary:hover{ background:#f6f7fb; transform:translateY(-2px) }
+    .btn-touch{ min-height:44px; padding:.7rem 1rem; font-size:1rem }
+    .btn-icon{ width:44px; height:44px; padding:0; justify-content:center }
+
+    /* Bloques */
     .block{ border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--panel); box-shadow:var(--shadow); overflow:hidden; margin-bottom:16px }
-    .block-header{ background:#fff; border-bottom:1px solid var(--border); padding:14px 18px; font-weight:800 }
+    .block-header{ background:#fff; border-bottom:1px solid var(--border); padding:14px 18px; font-weight:800; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap }
     .block-body{ padding:16px 18px }
-    .block-footer{ padding:12px 18px; background:#fafbff; border-top:1px solid var(--border) }
+    .block-footer{ padding:12px 18px; background:#fafbff; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap }
 
+    /* Inputs */
+    .form-control, .form-select{
+      border:1px solid var(--border); border-radius:12px; padding:.65rem .8rem; min-height:48px; font-size:1rem;
+      transition:border .2s, box-shadow .2s, background .2s;
+    }
+    .form-control:focus, .form-select:focus{ border-color:#dcd7fe; box-shadow:0 0 0 4px var(--ring) }
+
+    /* Tarjetas y “empty” */
     .table-card{ border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
-    .badge-soft{ padding:4px 10px; border-radius:999px; font-weight:700; font-size:.78rem; background:linear-gradient(135deg,#f0ecff,#e6f9ff); color:#0f172a; border:1px solid #edf0ff }
+    .badge-soft{ padding:4px 10px; border-radius:999px; font-weight:800; font-size:.78rem; background:linear-gradient(135deg,#f0ecff,#e6f9ff); color:#0f172a; border:1px solid #edf0ff }
     .empty{ border:1px dashed #dbe0ef; border-radius:14px; padding:18px; text-align:center; color:#6b7280; background:#f9fbff }
+
+    /* Tabla: mejoras responsive */
+    .table thead th{ white-space:nowrap }
+    .table td, .table th{ vertical-align:middle }
+    .table-responsive{ scrollbar-width:thin }
+    .table-responsive::-webkit-scrollbar{ height:8px }
+    .table-responsive::-webkit-scrollbar-thumb{ background:#d9def0; border-radius:999px }
+
+    /* Offcanvas filtros más cómodo en móvil */
+    .offcanvas{ border-left:1px solid var(--border) }
+    @media (max-width: 991.98px){
+      .offcanvas.offcanvas-end{ width:86vw; max-width:360px }
+    }
+
+    /* Acciones sticky en móvil (footer de resultados) */
+    @media (max-width: 575.98px){
+      .block-footer{
+        position:sticky; bottom:0; z-index:5;
+        background:linear-gradient(180deg, rgba(250,251,255,.5), #fafbff);
+        backdrop-filter: blur(4px);
+      }
+    }
+
+    /* Movimiento reducido */
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none!important; animation:none!important; scroll-behavior:auto!important }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <!-- Hero -->
     <div class="hero">
-      <div class="icon"><i class="bi bi-book-fill"></i></div>
+      <div class="icon" aria-hidden="true"><i class="bi bi-book-fill"></i></div>
       <div class="flex-grow-1">
-        <div class="title">Historial de Compras de Telas</div>
-        <div class="sub">Consulta, filtra y analiza tus compras de insumos</div>
+        <div class="title fs-fluid-lg">Historial de Compras de Telas</div>
+        <div class="sub fs-fluid-sm text-muted">Consulta, filtra y analiza tus compras de insumos</div>
       </div>
 
       <!-- Botón Filtros (visible en < lg) -->
-      <button class="btn btn-primary d-lg-none" type="button"
+      <button class="btn btn-primary btn-touch d-lg-none" type="button"
               data-bs-toggle="offcanvas" data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
         <i class="bi bi-funnel-fill me-1"></i> Filtros
       </button>
 
-      <a href="dashboard_admin.php" class="btn btn-secondary ms-auto d-none d-lg-inline-flex">
+      <a href="dashboard_admin.php" class="btn btn-secondary btn-touch ms-auto d-none d-lg-inline-flex">
         <i class="bi bi-arrow-left-circle me-1"></i> Volver al Panel
       </a>
     </div>
@@ -129,7 +200,7 @@ if ($res) {
               </select>
             </div>
             <div class="col-lg-2 d-grid">
-              <button type="submit" class="btn btn-primary"><i class="bi bi-funnel-fill me-1"></i> Filtrar</button>
+              <button type="submit" class="btn btn-primary btn-touch"><i class="bi bi-funnel-fill me-1"></i> Filtrar</button>
             </div>
           </div>
         </form>
@@ -168,8 +239,8 @@ if ($res) {
             </select>
           </div>
           <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel-fill me-1"></i> Aplicar</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="offcanvas">Cerrar</button>
+            <button type="submit" class="btn btn-primary btn-touch"><i class="bi bi-funnel-fill me-1"></i> Aplicar</button>
+            <button type="button" class="btn btn-secondary btn-touch" data-bs-dismiss="offcanvas">Cerrar</button>
           </div>
         </form>
       </div>
@@ -177,8 +248,8 @@ if ($res) {
 
     <!-- Resultados -->
     <section class="block">
-      <div class="block-header d-flex justify-content-between align-items-center">
-        <span>Resultados</span>
+      <div class="block-header">
+        <span class="fs-fluid-md">Resultados</span>
         <?php if (count($rows) > 0): ?>
           <span class="badge-soft"><?= number_format(count($rows)) ?> registros</span>
         <?php endif; ?>
@@ -269,27 +340,24 @@ if ($res) {
 
         <?php else: ?>
           <div class="empty">
-            <div class="mb-1" style="font-size:1.05rem"><i class="bi bi-exclamation-triangle-fill me-1"></i>No se encontraron compras con esos filtros.</div>
+            <div class="mb-1 fs-fluid-sm"><i class="bi bi-exclamation-triangle-fill me-1"></i>No se encontraron compras con esos filtros.</div>
             <div class="text-muted">Prueba con otro nombre, mes o año.</div>
           </div>
         <?php endif; ?>
       </div>
 
-      <div class="block-footer d-flex justify-content-end gap-2">
-        <a href="dashboard_admin.php" class="btn btn-secondary">
+      <div class="block-footer">
+        <a href="dashboard_admin.php" class="btn btn-secondary btn-touch">
           <i class="bi bi-arrow-left-circle me-1"></i> Volver al Panel
         </a>
-        <button class="btn btn-primary d-lg-none" type="button"
-                data-bs-toggle="offcanvas" data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
-          <i class="bi bi-funnel-fill me-1"></i> Filtros
-        </button>
+       
       </div>
     </section>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Cierra el offcanvas al enviar filtros en móvil/tablet
+    // Cierra el offcanvas al enviar filtros en móvil/tablet (misma lógica funcional)
     const formMobile = document.getElementById('formFiltrosMobile');
     if (formMobile) {
       formMobile.addEventListener('submit', () => {

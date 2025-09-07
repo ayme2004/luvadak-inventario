@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Registrar Compra de Tela - Luvadak</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <!-- Bootstrap + Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -15,7 +15,12 @@
       --brand:#7c3aed; --brand2:#00d4ff; --ring:rgba(124,58,237,.22);
       --radius:14px; --radius-lg:18px; --shadow:0 2px 12px rgba(16,24,40,.08);
       --ok:#16a34a; --warn:#f59e0b;
+      --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
     }
+
+    /* Base */
+    *,*::before,*::after{ box-sizing:border-box; }
+    html, body { height:100%; }
     body{
       background:
         radial-gradient(900px 520px at 110% -10%, rgba(124,58,237,.08), transparent 45%),
@@ -23,51 +28,78 @@
       color:var(--text);
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       font-size:14px;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding-bottom: calc(8px + var(--safe-bottom));
     }
 
-    .page{ max-width:1100px; margin:28px auto 34px; padding:0 16px }
+    /* Tipografía fluida para mejorar lectura en móvil */
+    .fs-fluid-sm{ font-size:clamp(.95rem, .9rem + .4vw, 1.05rem); }
+    .fs-fluid-md{ font-size:clamp(1rem, .95rem + .8vw, 1.25rem); }
+    .fs-fluid-lg{ font-size:clamp(1.1rem, 1rem + 1.2vw, 1.5rem); }
 
-    /* Hero */
+    .page{ max-width:1100px; margin:calc(18px + var(--safe-top)) auto 34px; padding:0 16px }
+
+    /* Hero (sticky en móvil para acceso rápido) */
     .hero{
+      position:sticky; top:0; z-index:10;
       display:flex; align-items:center; gap:12px;
-      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.98));
+      background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.98));
       border:1px solid var(--border); border-radius:var(--radius-lg);
-      padding:14px 16px; box-shadow:var(--shadow); margin-bottom:16px;
+      padding:12px 14px; box-shadow:var(--shadow); margin-bottom:16px;
+      backdrop-filter:saturate(120%) blur(6px);
     }
     .hero .icon{
-      width:40px; height:40px; border-radius:12px; display:grid; place-items:center; color:#fff;
+      width:44px; height:44px; border-radius:12px; display:grid; place-items:center; color:#fff;
       background:linear-gradient(135deg,var(--brand),var(--brand2));
       box-shadow:0 10px 24px rgba(124,58,237,.22);
+      font-size:1.1rem; flex:0 0 44px;
     }
-    .hero h3{ margin:0; font-weight:800; font-size:1.2rem }
-    .hero .sub{ color:var(--muted) }
+    .hero h3{ margin:0; font-weight:800 }
+    .hero .sub{ color:var(--muted); font-weight:500 }
 
-    /* Layout 2 bloques */
-    .blocks{ display:flex; flex-direction:column; gap:18px }
-    @media (min-width:992px){ .blocks{ flex-direction:row } }
+    /* Botón de volver adaptado a móvil */
+    .btn{
+      border-radius:999px; font-weight:800; border:1px solid var(--border);
+      display:inline-flex; align-items:center; gap:.45rem; letter-spacing:.2px;
+      transition:transform .15s ease, filter .15s ease, box-shadow .15s ease;
+    }
+    .btn:focus-visible{ outline:3px solid rgba(124,58,237,.35); outline-offset:2px; }
+    .btn-secondary{ background:#fff; color:#0f172a }
+    .btn-secondary:hover{ background:#f9f9ff; transform:translateY(-2px) }
+
+    /* Tamaños táctiles */
+    .btn-touch{ min-height:44px; padding:.7rem 1rem; font-size:1rem; }
+    .btn-icon{ width:44px; height:44px; padding:0; justify-content:center; }
+
+    /* Layout responsive de bloques */
+    .blocks{ display:grid; gap:16px; }
+    @media (min-width:992px){
+      .blocks{ grid-template-columns: 1fr .9fr; align-items:start; }
+    }
 
     .block{
       border:1px solid var(--border); background:var(--panel);
       border-radius:var(--radius-lg); box-shadow:var(--shadow);
-      overflow:hidden; display:flex; flex-direction:column;
+      overflow:hidden; display:flex; flex-direction:column; min-width:0;
     }
     .block-header{
-      padding:12px 16px; border-bottom:1px solid var(--border);
+      padding:12px 14px; border-bottom:1px solid var(--border);
       font-weight:800; display:flex; align-items:center; gap:.5rem;
     }
     .block-header .tag{
-      padding:.18rem .55rem; border-radius:999px; border:1px solid var(--border);
+      padding:.2rem .6rem; border-radius:999px; border:1px solid var(--border);
       background:#f6f7fb; font-size:.78rem; font-weight:700;
     }
     .block-body{ padding:14px 16px }
 
-    .block.left{ flex:1.1 }
-    .block.right{ flex:0.9 }
+    .block.left{ /* 1º columna */ }
+    .block.right{ /* 2º columna */ }
 
-    /* Inputs */
-    .form-label{ font-size:.9rem; font-weight:600; color:#334155; margin-bottom:.35rem }
+    /* Inputs cómodos en móvil */
+    .form-label{ font-size:.95rem; font-weight:700; color:#334155; margin-bottom:.35rem }
     .form-control, .form-select{
-      border:1px solid var(--border); border-radius:12px; padding:.55rem .7rem; background:#fff;
+      border:1px solid var(--border); border-radius:12px; padding:.65rem .8rem; background:#fff;
+      min-height:48px; font-size:1rem;
       transition:border .2s, box-shadow .2s, background .2s;
     }
     .form-control:focus, .form-select:focus{
@@ -75,20 +107,14 @@
     }
 
     /* Input group */
-    .input-group-text{ background:#f6f7fb; border:1px solid var(--border); border-right:0 }
+    .input-group-text{ background:#f6f7fb; border:1px solid var(--border); border-right:0; min-height:48px; }
 
-    /* Botones modernos */
-    .btn{
-      border-radius:999px; font-weight:700; padding:.6rem 1rem; border:1px solid var(--border);
-      display:inline-flex; align-items:center; gap:.35rem;
-    }
+    /* Botón principal (submit) */
     .btn-success{
       background:linear-gradient(135deg,#16a34a,#22c55e);
-      border-color:transparent; color:#fff; box-shadow:0 6px 16px rgba(22,163,74,.22);
+      border-color:transparent; color:#fff; box-shadow:0 8px 18px rgba(22,163,74,.25);
     }
     .btn-success:hover{ filter:brightness(1.04); transform:translateY(-2px) }
-    .btn-secondary{ background:#fff; color:#0f172a }
-    .btn-secondary:hover{ background:#f9f9ff; transform:translateY(-2px) }
 
     /* Resumen */
     .summary{
@@ -98,6 +124,18 @@
     .summary .val{ font-weight:800 }
     .summary .val.ok{ color:var(--ok) }
     .muted{ color:var(--muted) }
+
+    /* Barra de acciones “pegajosa” en móvil (solo estético, no cambia lógica) */
+    .actions-sticky{
+      position:sticky; bottom:0; z-index:5;
+      padding:10px 0 0; background:linear-gradient(180deg, transparent, rgba(248,250,252,.9));
+      backdrop-filter: blur(4px);
+    }
+
+    /* Respeta movimiento reducido */
+    @media (prefers-reduced-motion: reduce){
+      *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+    }
   </style>
 </head>
 <body>
@@ -105,13 +143,18 @@
 <div class="page">
   <!-- Hero -->
   <div class="hero">
-    <div class="icon"><i class="bi bi-cart-plus-fill"></i></div>
-    <div>
-      <h3>Registrar Compra de Tela</h3>
-      <div class="sub">Ingresa los datos de la compra y revisa el costo por unidad</div>
+    <div class="icon" aria-hidden="true"><i class="bi bi-cart-plus-fill"></i></div>
+    <div class="me-2">
+      <h3 class="fs-fluid-lg">Registrar Compra de Tela</h3>
+      <div class="sub fs-fluid-sm">Ingresa los datos de la compra y revisa el costo por unidad</div>
     </div>
-    <div class="ms-auto">
-      <a href="dashboard_admin.php" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Volver</a>
+
+    <!-- Desktop: botón con texto; Móvil: ícono táctil -->
+    <div class="ms-auto d-none d-sm-block">
+      <a href="dashboard_admin.php" class="btn btn-secondary btn-touch"><i class="bi bi-arrow-left-circle"></i> Volver</a>
+    </div>
+    <div class="ms-auto d-sm-none">
+      <a href="dashboard_admin.php" class="btn btn-secondary btn-icon" aria-label="Volver al Panel"><i class="bi bi-arrow-left-circle"></i></a>
     </div>
   </div>
 
@@ -119,7 +162,7 @@
     <div class="blocks">
       <!-- Bloque IZQUIERDO: Datos de compra -->
       <section class="block left">
-        <div class="block-header"><i class="bi bi-receipt"></i> Datos de compra <span class="tag">Requeridos</span></div>
+        <div class="block-header fs-fluid-md"><i class="bi bi-receipt"></i> <span>Datos de compra</span> <span class="tag ms-1">Requeridos</span></div>
         <div class="block-body">
           <div class="mb-3">
             <label class="form-label"><i class="bi bi-tag"></i> Nombre de la tela</label>
@@ -127,7 +170,7 @@
           </div>
 
           <div class="row g-2">
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
               <label class="form-label"><i class="bi bi-rulers"></i> Unidad de medida</label>
               <select name="unidad" id="unidad" class="form-select" required>
                 <option value="">-- Selecciona unidad --</option>
@@ -135,7 +178,7 @@
                 <option value="kilo">Kilo</option>
               </select>
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
               <label id="lblCantidad" class="form-label"><i class="bi bi-arrow-down-up"></i> Cantidad comprada</label>
               <div class="input-group">
                 <input type="number" step="0.01" name="metros_comprados" id="cantidad" class="form-control" placeholder="Ej: 25.5" required>
@@ -156,7 +199,7 @@
 
       <!-- Bloque DERECHO: Opcionales + Resumen -->
       <section class="block right">
-        <div class="block-header"><i class="bi bi-sliders2"></i> Opcionales & Resumen</div>
+        <div class="block-header fs-fluid-md"><i class="bi bi-sliders2"></i> <span>Opcionales & Resumen</span></div>
         <div class="block-body">
           <div class="mb-3">
             <label class="form-label"><i class="bi bi-truck"></i> Proveedor (opcional)</label>
@@ -184,11 +227,13 @@
       </section>
     </div>
 
-    <!-- Acciones -->
-    <div class="d-grid gap-2 mt-3">
-      <button type="submit" class="btn btn-success">
-        <i class="bi bi-check-circle-fill"></i> Registrar Compra
-      </button>
+    <!-- Acciones (sticky en móvil) -->
+    <div class="actions-sticky">
+      <div class="d-grid gap-2 mt-3">
+        <button type="submit" class="btn btn-success btn-touch">
+          <i class="bi bi-check-circle-fill"></i> Registrar Compra
+        </button>
+      </div>
     </div>
   </form>
 </div>

@@ -24,8 +24,8 @@ if (isset($_GET['buscar'])) {
 }
 
 // KPIs rápidos
-$total_ventas = count($ventas);
-$total_monto  = array_sum(array_map(fn($r)=> (float)$r['total'], $ventas));
+$total_ventas  = count($ventas);
+$total_monto   = array_sum(array_map(fn($r)=> (float)$r['total'], $ventas));
 $primera_fecha = $total_ventas ? min(array_map(fn($r)=> strtotime($r['fecha']), $ventas)) : null;
 $ultima_fecha  = $total_ventas ? max(array_map(fn($r)=> strtotime($r['fecha']), $ventas)) : null;
 ?>
@@ -34,128 +34,240 @@ $ultima_fecha  = $total_ventas ? max(array_map(fn($r)=> strtotime($r['fecha']), 
 <head>
   <meta charset="UTF-8">
   <title>Historial de Compras por Cliente</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <!-- Bootstrap + Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     :root{
-      --bg:#f8fafc; --panel:#ffffff; --text:#0f172a; --muted:#667085; --border:#e6e9f2;
-      --brand:#7c3aed; --brand2:#00d4ff; --ring:rgba(124,58,237,.22);
-      --radius:12px; --radius-lg:16px; --shadow:0 2px 12px rgba(16,24,40,.08);
-      --success:#16a34a;
+      --bg:#f7f8fb;
+      --panel:#ffffff;
+      --text:#0f172a;
+      --muted:#6b7280;
+      --border:#e7ebf3;
+
+      --brand:#6d5dfc;
+      --brand2:#22d3ee;
+      --ring:rgba(109,93,252,.35);
+
+      --ok:#16a34a;
+
+      --shadow-sm:0 1px 6px rgba(15,23,42,.06);
+      --shadow-md:0 8px 24px rgba(15,23,42,.08);
     }
+
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
     body{
-      background:
-        radial-gradient(900px 520px at 110% -10%, rgba(124,58,237,.06), transparent 45%),
-        var(--bg);
-      color:var(--text);
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
 
-    .page{ max-width:1200px; margin:34px auto 40px; padding:0 16px }
+    .page{ max-width:1100px; margin:24px auto 36px; padding:0 16px }
 
-    /* Hero */
+    /* ===== Hero minimal ===== */
     .hero{
-      display:flex; align-items:center; gap:12px;
-      background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.98));
-      border:1px solid var(--border); border-radius:var(--radius-lg);
-      padding:14px 16px; box-shadow:var(--shadow); margin-bottom:16px;
+      display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px 16px;
+      box-shadow:var(--shadow-sm);
     }
-    .hero .icon{
-      width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;
+    .hero .ic{
+      width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;
       background:linear-gradient(135deg,var(--brand),var(--brand2));
-      box-shadow:0 10px 24px rgba(124,58,237,.22);
+      font-size:1.1rem;
     }
-    .hero h3{ margin:0; font-weight:800; font-size:1.15rem }
-    .hero .sub{ color:var(--muted) }
+    .hero h3{ margin:0; font-weight:800; font-size:1.12rem }
+    .hero .sub{ color:var(--muted); font-size:.95rem }
 
-    /* Layout 2 bloques */
-    .blocks{ display:flex; flex-direction:column; gap:18px }
+    /* ===== Bloques generales ===== */
+    .blocks{ display:flex; gap:16px; flex-direction:column }
     @media (min-width:992px){ .blocks{ flex-direction:row } }
 
     .block{
-      border:1px solid var(--border); background:var(--panel);
-      border-radius:var(--radius-lg); box-shadow:var(--shadow);
-      overflow:hidden; display:flex; flex-direction:column;
+      background:var(--panel); border:1px solid var(--border); border-radius:16px;
+      box-shadow:var(--shadow-sm); overflow:hidden; display:flex; flex-direction:column;
     }
-    .block-header{ padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700 }
-    .block-body{ padding:16px 16px }
-    .block-footer{ padding:12px 16px; border-top:1px solid var(--border); background:#fafbff }
+    .block-header{ padding:12px 14px; font-weight:700; border-bottom:1px solid var(--border) }
+    .block-body{ padding:14px 14px 16px }
 
-    .block.left{ flex:1; max-width:380px }
-    .block.right{ flex:1.6 }
+    /* ===== Buscador móvil (bloque izquierdo) ===== */
+    .block.left{ flex:1; max-width:100% }
+    @media (min-width:992px){ .block.left{ display:none } } /* oculto en >= lg */
 
-    /* Inputs / botones */
+    /* ===== Buscador escritorio/tablet ===== */
+    .search-desktop{ display:none }
+    @media (min-width:992px){
+      .search-desktop{ display:block; }
+      .search-grid{
+        display:grid; gap:12px;
+        grid-template-columns: 1fr 380px;      /* formulario + KPIs a la derecha */
+        align-items:end;
+      }
+      @media (min-width:1200px){
+        .search-grid{ grid-template-columns: 1fr 420px; }
+      }
+    }
+
+    /* Inputs */
     .form-control{
-      border:1px solid var(--border); border-radius:999px; padding:.65rem 1rem;
-      transition:border .2s, box-shadow .2s, background .2s;
+      border:1px solid var(--border); background:#fff; color:#0f172a;
+      border-radius:12px; padding:.6rem .9rem;
+      transition:border-color .15s, box-shadow .15s;
     }
-    .form-control:focus{ border-color:#d5d9e3; box-shadow:0 0 0 3px var(--ring) }
-    .btn{ border-radius:999px; font-weight:700; padding:.6rem 1rem; border:1px solid var(--border) }
-    .btn-primary{
-      background:linear-gradient(135deg,var(--brand),var(--brand2));
-      border-color:transparent; color:#fff; box-shadow:0 6px 16px rgba(124,58,237,.22);
-    }
-    .btn-primary:hover{ filter:brightness(1.04); transform:translateY(-2px) }
-    .btn-secondary{ background:#fff; color:var(--text) }
-    .btn-secondary:hover{ background:#f9f9ff; transform:translateY(-2px) }
+    .form-control:focus{ border-color:#dcd7fe; box-shadow:0 0 0 4px var(--ring) }
 
-    /* KPI */
-    .kpi{ border:1px solid var(--border); border-radius:12px; padding:12px; background:#fff }
-    .kpi .label{ color:var(--muted); font-size:.9rem }
-    .kpi .value{ font-weight:800; font-size:1.1rem }
-    .money{ color:var(--success); font-weight:800 }
+    /* Botones */
+    .btn{
+      border-radius:12px; font-weight:700; letter-spacing:.2px;
+      border:1px solid var(--border); min-height:44px;
+      padding:.6rem 1rem; box-shadow:var(--shadow-sm);
+      transition: transform .12s ease, background .2s, border-color .2s, box-shadow .2s;
+    }
+    .btn:focus-visible{ outline:3px solid var(--ring); outline-offset:2px }
+    .btn-primary{
+      color:#fff; border-color:transparent;
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      box-shadow:0 8px 22px rgba(34,211,238,.18);
+    }
+    .btn-primary:hover{ transform:translateY(-1px); filter:brightness(1.03) }
+    .btn-secondary{
+      background:#fff; color:#0f172a; border-color:var(--border);
+    }
+    .btn-secondary:hover{ background:#f6f7fb; transform:translateY(-1px) }
+
+    /* Grupo de botones: full en móvil, compacto en >= md */
+    .btn-group-fluid{ display:flex; gap:10px; flex-wrap:wrap }
+    .btn-group-fluid .btn{ flex:1 1 140px }
+    @media (min-width:768px){
+      .btn-group-fluid{ flex-wrap:nowrap }
+      .btn-group-fluid .btn{ flex:0 0 auto }
+    }
+
+    /* KPIs */
+    .kpi{
+      border:1px solid var(--border); border-radius:12px; padding:12px; background:#fff;
+    }
+    .kpi .label{ color:var(--muted); font-size:.88rem; margin-bottom:2px }
+    .kpi .value{ font-weight:800 }
+    .money{ color:var(--ok); font-weight:800 }
+
+    /* Grids para KPIs */
+    .kpis{ display:grid; gap:10px; }
+    .kpis--mobile{ grid-template-columns: 1fr; }
+    .kpis--desktop{ grid-template-columns: 1fr 1fr 1fr; }
 
     /* Tabla */
-    .table-modern{ border:1px solid var(--border); border-radius:12px; overflow:hidden }
-    .table-modern thead{ background:#f6f7fb }
-    .table-modern th{ border:0; font-weight:700 }
-    .table-modern td{ border-color:#eef1f6 }
-    .table-modern tbody tr:hover{ background:#fafbff }
+    .table-wrap{ border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff }
+    table thead{ background:#f7f8fb }
+    table thead th{ border:0; font-weight:700 }
+    table tbody td{ border-color:#eef1f6 }
 
-    .empty{
-      border:1px dashed #dbe0ef; border-radius:14px; padding:18px; text-align:center;
-      color:#6b7280; background:#f9fbff;
+    /* Tarjetas en móvil */
+    @media (max-width: 768px){
+      .table-wrap table, .table-wrap thead, .table-wrap tbody, .table-wrap th, .table-wrap td, .table-wrap tr{ display:block; width:100% }
+      .table-wrap thead{ display:none }
+      .table-wrap tr{
+        background:#fff; border:1px solid var(--border); border-radius:12px;
+        box-shadow:var(--shadow-sm); padding:12px; margin-bottom:12px;
+      }
+      .table-wrap td{ border:none; padding:6px 0; text-align:left; white-space:normal }
+      .table-wrap td::before{ content:attr(data-label); display:block; font-weight:700; color:var(--muted); margin-bottom:2px }
+      tfoot{ display:block; margin-top:6px }
+      tfoot tr{ display:block; border:1px solid var(--border); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow-sm) }
+      tfoot td{ display:flex; justify-content:space-between; border:0; padding:4px 0 }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none!important; animation:none!important; scroll-behavior:auto!important }
     }
   </style>
 </head>
 <body>
   <div class="page">
     <!-- Hero -->
-    <div class="hero">
-      <div class="icon"><i class="bi bi-receipt-cutoff"></i></div>
-      <div>
+    <div class="hero mb-3">
+      <div class="ic"><i class="bi bi-journal-text"></i></div>
+      <div class="flex-grow-1">
         <h3>Historial de Compras por Cliente</h3>
         <div class="sub">Busca por nombre y revisa sus últimas compras</div>
       </div>
-      <div class="ms-auto">
-        <a href="dashboard_empleado.php" class="btn btn-secondary">
-          <i class="bi bi-arrow-left"></i> Volver al Panel
-        </a>
-      </div>
+      <a href="dashboard_empleado.php" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al Panel
+      </a>
     </div>
 
+    <!-- ===== Buscador ESCRITORIO/TABLET (>= lg) ===== -->
+    <section class="block search-desktop mb-3">
+      <div class="block-header">Buscar cliente</div>
+      <div class="block-body">
+        <div class="search-grid">
+          <!-- Col izquierda: formulario -->
+          <form method="GET" class="vstack gap-2">
+            <input type="text" name="buscar" class="form-control"
+                   placeholder="Ej: Juan Pérez"
+                   value="<?= htmlspecialchars($buscar) ?>" required>
+            <div class="btn-group-fluid">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i>&nbsp;Buscar</button>
+              <a href="historial_clientes_empleado.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-clockwise"></i>&nbsp;Limpiar
+              </a>
+            </div>
+          </form>
+
+          <!-- Col derecha: KPIs (solo si hay búsqueda) -->
+          <?php if ($buscar !== ''): ?>
+            <div class="kpis kpis--desktop">
+              <div class="kpi">
+                <div class="label">Resultados</div>
+                <div class="value"><?= number_format($total_ventas) ?></div>
+              </div>
+              <div class="kpi">
+                <div class="label">Total comprado</div>
+                <div class="value money">S/ <?= number_format($total_monto,2) ?></div>
+              </div>
+              <div class="kpi">
+                <div class="label">Rango de fechas</div>
+                <div class="value">
+                  <?php if ($total_ventas): ?>
+                    <?= date('d/m/Y', $primera_fecha) ?> — <?= date('d/m/Y', $ultima_fecha) ?>
+                  <?php else: ?>
+                    —
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+    </section>
+
     <div class="blocks">
-      <!-- Izquierda: búsqueda + KPIs -->
+      <!-- ===== Buscador MÓVIL (xs–md) ===== -->
       <section class="block left">
         <div class="block-header">Buscar cliente</div>
         <div class="block-body">
-          <form method="GET" class="vstack gap-3">
-            <div class="input-group">
-              <input type="text" name="buscar" class="form-control"
-                     placeholder="🔍 Ej: Juan Pérez"
-                     value="<?= htmlspecialchars($buscar) ?>" required>
-              <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
-              <a href="historial_clientes_empleado.php" class="btn btn-secondary"><i class="bi bi-arrow-clockwise"></i></a>
+          <form method="GET" class="vstack gap-2">
+            <input type="text" name="buscar" class="form-control"
+                   placeholder="Ej: Juan Pérez"
+                   value="<?= htmlspecialchars($buscar) ?>" required>
+            <div class="btn-group-fluid">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i>&nbsp;Buscar</button>
+              <a href="historial_clientes_empleado.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-clockwise"></i>&nbsp;Limpiar
+              </a>
             </div>
           </form>
 
           <?php if ($buscar !== ''): ?>
-            <hr class="my-4">
-            <div class="vstack gap-2">
+            <div class="kpis kpis--mobile mt-2">
               <div class="kpi">
                 <div class="label">Resultados</div>
                 <div class="value"><?= number_format($total_ventas) ?></div>
@@ -167,9 +279,7 @@ $ultima_fecha  = $total_ventas ? max(array_map(fn($r)=> strtotime($r['fecha']), 
               <?php if ($total_ventas): ?>
                 <div class="kpi">
                   <div class="label">Rango de fechas</div>
-                  <div class="value">
-                    <?= date('d/m/Y', $primera_fecha) ?> — <?= date('d/m/Y', $ultima_fecha) ?>
-                  </div>
+                  <div class="value"><?= date('d/m/Y', $primera_fecha) ?> — <?= date('d/m/Y', $ultima_fecha) ?></div>
                 </div>
               <?php endif; ?>
             </div>
@@ -177,22 +287,22 @@ $ultima_fecha  = $total_ventas ? max(array_map(fn($r)=> strtotime($r['fecha']), 
         </div>
       </section>
 
-      <!-- Derecha: tabla -->
-      <section class="block right">
+      <!-- ===== Resultados ===== -->
+      <section class="block right" style="flex:1 1 auto;">
         <div class="block-header">Compras encontradas</div>
         <div class="block-body">
           <?php if ($buscar === ''): ?>
-            <div class="empty">
+            <div class="text-center text-muted py-3" style="border:1px dashed var(--border); border-radius:12px;">
               Ingresa un nombre de cliente para ver su historial.
             </div>
           <?php elseif ($total_ventas === 0): ?>
-            <div class="empty">
+            <div class="text-center text-muted py-3" style="border:1px dashed var(--border); border-radius:12px;">
               <i class="bi bi-exclamation-triangle me-1"></i>
               No se encontraron compras para <strong><?= htmlspecialchars($buscar) ?></strong>.
             </div>
           <?php else: ?>
-            <div class="table-responsive table-modern">
-              <table class="table align-middle text-center">
+            <div class="table-wrap">
+              <table class="table align-middle text-center m-0">
                 <thead>
                   <tr>
                     <th>Cliente</th>
@@ -204,16 +314,16 @@ $ultima_fecha  = $total_ventas ? max(array_map(fn($r)=> strtotime($r['fecha']), 
                 <tbody>
                   <?php foreach ($ventas as $row): ?>
                     <tr>
-                      <td><?= htmlspecialchars($row['nombre_completo']) ?></td>
-                      <td>#<?= (int)$row['id_venta'] ?></td>
-                      <td><?= date("d/m/Y", strtotime($row['fecha'])) ?></td>
-                      <td class="money">S/ <?= number_format($row['total'], 2) ?></td>
+                      <td data-label="Cliente"><?= htmlspecialchars($row['nombre_completo']) ?></td>
+                      <td data-label="ID Venta">#<?= (int)$row['id_venta'] ?></td>
+                      <td data-label="Fecha"><?= date("d/m/Y", strtotime($row['fecha'])) ?></td>
+                      <td data-label="Total" class="money">S/ <?= number_format($row['total'], 2) ?></td>
                     </tr>
                   <?php endforeach; ?>
                 </tbody>
-                <tfoot class="table-secondary fw-bold">
+                <tfoot class="fw-bold">
                   <tr>
-                    <td class="text-end" colspan="3">TOTAL</td>
+                    <td colspan="3" class="text-end">TOTAL</td>
                     <td class="money">S/ <?= number_format($total_monto, 2) ?></td>
                   </tr>
                 </tfoot>

@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-/* ===== Mensajes (según tu tabla actual) ===== */
+/* ===== Mensajes ===== */
 $list = $conexion->prepare("
     SELECT mensaje, fecha_envio
     FROM comentarios
@@ -67,114 +67,108 @@ $comentarios_admin = $list->get_result();
 <head>
   <meta charset="UTF-8">
   <title>Comentarios a Administración - Luvadak</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     :root{
-      --bg:#f8fafc; --panel:#ffffff; --text:#0f172a; --muted:#667085; --border:#e6e9f2;
-      --brand:#7c3aed; --brand2:#00d4ff; --ring:rgba(124,58,237,.22);
-      --radius:14px; --radius-sm:10px; --shadow:0 10px 26px rgba(16,24,40,.06);
+      --bg:#f7f8fb; --panel:#ffffff; --text:#0f172a; --muted:#667085; --border:#e7ebf3;
+      --brand:#6d5dfc; --brand2:#22d3ee; --ring:rgba(109,93,252,.35);
+      --radius:14px; --radius-sm:12px; --shadow-sm:0 1px 6px rgba(15,23,42,.06); --shadow-md:0 10px 26px rgba(15,23,42,.08);
     }
 
-    /* Base */
-    *,*::before,*::after{ box-sizing:border-box; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
-      overflow-x:hidden;
-      background:
-        radial-gradient(900px 520px at 110% -10%, rgba(124,58,237,.06), transparent 45%),
-        var(--bg);
+      background:var(--bg);
       color:var(--text);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
 
-    /* Header */
-    .hero{ max-width:1200px; margin:28px auto 12px; padding:0 16px; }
+    .hero{ max-width:1200px; margin:20px auto 10px; padding:0 16px; }
     .hero-bar{
-      display:flex; align-items:center; gap:12px;
-      background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.96));
-      border:1px solid var(--border); border-radius:16px; padding:14px 16px; box-shadow:var(--shadow);
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+      background:var(--panel); border:1px solid var(--border); border-radius:16px;
+      padding:12px 14px; box-shadow:var(--shadow-sm);
     }
-    .hero-icon{
-      width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:#fff;
-      background:linear-gradient(135deg,var(--brand),var(--brand2)); box-shadow:0 10px 24px rgba(124,58,237,.22);
-    }
-    .hero-title{ font-weight:800; font-size:1.2rem }
+    .hero-icon{ width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;
+      background:linear-gradient(135deg,var(--brand),var(--brand2)); }
+    .hero-title{ font-weight:800; font-size:clamp(1.05rem,1.2vw+1rem,1.2rem) }
+    .hero-sub{ color:var(--muted) }
 
-    /* Layout 2 bloques */
-    .page{ max-width:1200px; margin:0 auto 40px; padding:0 16px }
-    .blocks{ display:flex; flex-direction:column; gap:18px }
+    .page{ max-width:1200px; margin:0 auto 34px; padding:0 16px }
+    .blocks{ display:flex; flex-direction:column; gap:16px }
     @media (min-width:992px){ .blocks{ flex-direction:row } }
 
     .block{
-      border:1px solid var(--border); border-radius:var(--radius); background:var(--panel);
-      box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column; min-width:0;
+      border:1px solid var(--border); border-radius:16px; background:var(--panel);
+      box-shadow:var(--shadow-sm); overflow:hidden; display:flex; flex-direction:column; min-width:0;
     }
-    .block-header{ padding:14px 18px; border-bottom:1px solid var(--border); font-weight:700 }
-    .block-body{ padding:16px 18px }
-    .block-footer{ padding:12px 18px; border-top:1px solid var(--border); background:#fafbff }
+    .block-header{ padding:12px 14px; border-bottom:1px solid var(--border); font-weight:700 }
+    .block-body{ padding:14px 14px 16px }
+    .block-footer{ padding:12px 14px; border-top:1px solid var(--border); background:#fafbff }
 
-    .block.compose{ flex:1; }
-    .block.inbox{ flex:1.25; }
+    .compose{ flex:1 }
+    .inbox{ flex:1.25 }
 
-    /* Formulario */
-    .form-label{ font-weight:600 }
+    /* ===== Mobile tabs (solo en móvil) ===== */
+    .mobile-tabs{ display:none; }
+    @media (max-width:991.98px){
+      .mobile-tabs{ display:block; position:sticky; top:8px; z-index:20; margin:6px 0 2px }
+      .seg{ display:grid; grid-template-columns:1fr 1fr; gap:6px; background:#f1f4ff; border:1px solid var(--border); border-radius:999px; padding:6px }
+      .seg button{
+        border:none; border-radius:999px; padding:.55rem .9rem; font-weight:700; color:#334155; background:transparent;
+      }
+      .seg button.active{ color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand2)); box-shadow:0 6px 14px rgba(34,211,238,.18) }
+      .mobile-pane{ display:none }
+      .mobile-pane.show{ display:block }
+    }
+    @media (min-width:992px){
+      .mobile-pane{ display:block !important }
+    }
+
+    /* ===== Inputs y botones ===== */
     .form-control{
-      border:1px solid var(--border); border-radius:var(--radius-sm); transition:.2s;
+      border:1px solid var(--border); border-radius:var(--radius-sm); padding:.65rem .9rem; background:#fff;
+      transition:border-color .15s, box-shadow .15s;
     }
-    .form-control:focus{ border-color:#d5d9e3; box-shadow:0 0 0 3px var(--ring); }
-    textarea{ resize:none; }
+    .form-control:focus{ border-color:#dcd7fe; box-shadow:0 0 0 4px var(--ring) }
+    textarea{ resize:none }
 
-    /* Botones */
-    .btn{ border-radius:999px; font-weight:700; padding:.65rem 1.4rem; border:none; transition:all .25s ease;
-          display:inline-flex; align-items:center; gap:.35rem; font-size:.95rem; }
-    .btn-primary{ background:linear-gradient(135deg, var(--brand), var(--brand2)); color:#fff; box-shadow:0 4px 14px rgba(124,58,237,.25); }
-    .btn-primary:hover{ filter:brightness(1.05); transform:translateY(-2px); box-shadow:0 6px 18px rgba(124,58,237,.35); }
-    .btn:disabled{ opacity:.65; cursor:not-allowed; }
+    .btn{
+      border-radius:12px; font-weight:700; border:1px solid var(--border);
+      min-height:44px; padding:.6rem 1rem; box-shadow:var(--shadow-sm);
+      transition:transform .12s ease, background .2s, border-color .2s, box-shadow .2s;
+      display:inline-flex; align-items:center; gap:.4rem;
+    }
+    .btn:focus-visible{ outline:3px solid var(--ring); outline-offset:2px }
+    .btn-primary{
+      color:#fff; border-color:transparent;
+      background:linear-gradient(135deg,var(--brand),var(--brand2)); box-shadow:0 10px 26px rgba(34,211,238,.18);
+    }
+    .btn-primary:hover{ transform:translateY(-1px); filter:brightness(1.03) }
+    .btn-secondary{ background:#fff; color:#0f172a }
+    .btn-secondary:hover{ background:#f6f7fb; transform:translateY(-1px) }
+    .btn:disabled{ opacity:.6; cursor:not-allowed }
+
+    .btn-group-fluid{ display:flex; gap:10px; flex-wrap:wrap }
+    .btn-group-fluid .btn{ flex:1 1 160px }
 
     .counter{ color:var(--muted); font-size:.9rem }
 
-    /* === Tarjetas de mensajes (diseño ordenado) === */
+    /* ===== Mensajes (tarjetas limpias) ===== */
     .msg{
-      border:1px solid #e6ebff;
-      background:linear-gradient(180deg,#f3f6ff,#ffffff);
-      border-radius:14px;
-      padding:14px 16px;
-      max-width:100%;
-      overflow:hidden;
-      box-shadow:0 2px 6px rgba(16,24,40,.05);
+      border:1px solid #e7ebff; background:#fff; border-radius:14px; padding:12px 14px; box-shadow:var(--shadow-sm);
     }
-    .msg-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      margin-bottom:6px;
-    }
-    .msg-from{
-      font-weight:700;
-      color:#111827;
-      display:flex; align-items:center; gap:6px;
-    }
-    .msg-time{
-      color:#6b7280;
-      font-size:.85rem;
-      display:flex; align-items:center; gap:6px;
-      white-space:nowrap;
-    }
-    .msg-text{
-      margin-top:.25rem;
-      color:#1f2937;
-      font-size:.95rem;
-      line-height:1.45;
-      white-space:pre-wrap;      /* respeta saltos */
-      overflow-wrap:anywhere;    /* parte palabras larguísimas */
-      word-break:break-word;     /* respaldo */
-    }
+    .msg-header{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px }
+    .msg-from{ font-weight:700; display:flex; align-items:center; gap:6px; color:#0f172a }
+    .msg-time{ color:#6b7280; font-size:.86rem; display:flex; align-items:center; gap:6px; white-space:nowrap }
+    .msg-text{ color:#1f2937; font-size:.95rem; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere }
 
-    /* Scroll interno opcional para la bandeja */
-    .inbox .block-body{ max-height:65vh; overflow:auto; }
+    /* Scroll interno de la bandeja */
+    .inbox .block-body{ max-height:65vh; overflow:auto }
   </style>
 </head>
 <body>
@@ -183,23 +177,28 @@ $comentarios_admin = $list->get_result();
   <div class="hero">
     <div class="hero-bar">
       <div class="hero-icon"><i class="bi bi-chat-dots-fill"></i></div>
-      <div>
+      <div class="flex-grow-1">
         <div class="hero-title">Comentarios a Administración</div>
-        <div class="text-muted">Envía sugerencias o dudas y revisa las respuestas del administrador</div>
+        <div class="hero-sub">Envía sugerencias o dudas y revisa las respuestas del administrador</div>
       </div>
-      <div class="ms-auto">
-        <a href="dashboard_empleado.php" class="btn btn-secondary" style="border:1px solid var(--border); background:#fff; color:var(--text);">
-          <i class="bi bi-arrow-left"></i> Volver
-        </a>
-      </div>
+      <a href="dashboard_empleado.php" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
     </div>
   </div>
 
   <div class="page">
-    <div class="blocks">
+    <!-- Conmutador móvil -->
+    <div class="mobile-tabs d-lg-none">
+      <div class="seg">
+        <button class="active" data-show="compose">Escribir</button>
+        <button data-show="inbox">Mensajes</button>
+      </div>
+    </div>
 
-      <!-- Bloque: Enviar -->
-      <section class="block compose">
+    <div class="blocks">
+      <!-- Enviar -->
+      <section id="compose" class="block compose mobile-pane show">
         <div class="block-header"><i class="bi bi-pencil-square me-1"></i> Enviar nuevo mensaje</div>
         <div class="block-body">
           <?php if (isset($_GET['sent'])): ?>
@@ -216,9 +215,11 @@ $comentarios_admin = $list->get_result();
 
             <div class="d-flex justify-content-between align-items-center mt-2">
               <small class="counter"><span id="cc">0</span>/500</small>
-              <button id="btnSend" type="submit" class="btn btn-primary" disabled>
-                <i class="bi bi-send-fill"></i> Enviar
-              </button>
+              <div class="btn-group-fluid" style="max-width:360px">
+                <button id="btnSend" type="submit" class="btn btn-primary" disabled>
+                  <i class="bi bi-send-fill"></i> Enviar
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -227,8 +228,8 @@ $comentarios_admin = $list->get_result();
         </div>
       </section>
 
-      <!-- Bloque: Mensajes -->
-      <section class="block inbox">
+      <!-- Mensajes -->
+      <section id="inbox" class="block inbox mobile-pane">
         <div class="block-header"><i class="bi bi-inbox-fill me-1"></i> Mensajes del Administrador</div>
         <div class="block-body">
           <?php if ($comentarios_admin->num_rows > 0): ?>
@@ -236,14 +237,8 @@ $comentarios_admin = $list->get_result();
               <?php while ($c = $comentarios_admin->fetch_assoc()): ?>
                 <div class="msg">
                   <div class="msg-header">
-                    <div class="msg-from">
-                      <i class="bi bi-person-circle"></i>
-                      Administrador
-                    </div>
-                    <div class="msg-time">
-                      <i class="bi bi-clock"></i>
-                      <?= date("d/m/Y H:i", strtotime($c['fecha_envio'])) ?>
-                    </div>
+                    <div class="msg-from"><i class="bi bi-person-circle"></i> Administrador</div>
+                    <div class="msg-time"><i class="bi bi-clock"></i> <?= date("d/m/Y H:i", strtotime($c['fecha_envio'])) ?></div>
                   </div>
                   <div class="msg-text"><?= nl2br(htmlspecialchars($c['mensaje'])) ?></div>
                 </div>
@@ -251,13 +246,12 @@ $comentarios_admin = $list->get_result();
             </div>
           <?php else: ?>
             <div class="text-center p-4 border rounded-3" style="border-color:var(--border); background:#f9fbff;">
-              <div class="mb-1" style="font-size:1.2rem">No hay comentarios registrados aún.</div>
+              <div class="mb-1" style="font-size:1.05rem">No hay comentarios registrados aún.</div>
               <div class="text-muted">Cuando el administrador te responda, aparecerá aquí.</div>
             </div>
           <?php endif; ?>
         </div>
       </section>
-
     </div>
   </div>
 
@@ -284,6 +278,17 @@ $comentarios_admin = $list->get_result();
         }
       });
     }
+
+    // Tabs móviles
+    const segBtns = document.querySelectorAll('.seg button');
+    segBtns.forEach(b=>{
+      b.addEventListener('click', ()=>{
+        segBtns.forEach(i=>i.classList.remove('active'));
+        b.classList.add('active');
+        document.querySelectorAll('.mobile-pane').forEach(p=>p.classList.remove('show'));
+        document.getElementById(b.dataset.show).classList.add('show');
+      });
+    });
   </script>
 </body>
 </html>

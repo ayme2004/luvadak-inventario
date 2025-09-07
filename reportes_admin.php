@@ -31,27 +31,23 @@ $vendedores = $conexion->query("
 <head>
   <meta charset="UTF-8" />
   <title>Panel de Reportes - Luvadak</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     :root{
-      --bg:#f8fafc;
-      --panel:#ffffff;
-      --text:#0f172a;
-      --muted:#667085;
-      --border:#e6e9f2;
-
-      --brand:#7c3aed;    /* lila */
-      --brand2:#00d4ff;   /* celeste */
-      --ring:rgba(124,58,237,.22);
-
-      --radius:14px;
-      --radius-lg:18px;
-      --shadow:0 10px 26px rgba(16,24,40,.08);
+      --bg:#f8fafc; --panel:#ffffff; --text:#0f172a; --muted:#667085; --border:#e6e9f2;
+      --brand:#7c3aed; --brand2:#00d4ff; --ring:rgba(124,58,237,.22);
+      --radius:14px; --radius-lg:18px; --shadow:0 10px 26px rgba(16,24,40,.08);
+      --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
     }
+
+    /* Tipografía fluida */
+    .fs-fluid-sm{ font-size:clamp(.95rem,.9rem + .3vw,1.05rem) }
+    .fs-fluid-md{ font-size:clamp(1.04rem,1rem + .6vw,1.22rem) }
+    .fs-fluid-lg{ font-size:clamp(1.18rem,1.05rem + 1vw,1.5rem) }
 
     body{
       background:
@@ -60,16 +56,20 @@ $vendedores = $conexion->query("
         var(--bg);
       color:var(--text);
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding-bottom:max(10px,var(--safe-bottom));
     }
 
-    .wrap{ max-width:1200px; margin:28px auto; padding:0 16px }
+    .wrap{ max-width:1200px; margin:calc(18px + var(--safe-top)) auto 28px; padding:0 16px }
 
-    /* Hero glass */
+    /* Hero glass (sticky en móvil) */
     .hero{
-      display:flex; align-items:center; gap:12px;
+      position:sticky; top:0; z-index:10;
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
       background:linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.96));
       border:1px solid var(--border); border-radius:var(--radius-lg);
-      padding:14px 16px; box-shadow:var(--shadow); margin-bottom:18px;
+      padding:12px 14px; box-shadow:var(--shadow); margin-bottom:16px;
+      backdrop-filter:saturate(120%) blur(6px);
     }
     .hero .icon{
       width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;
@@ -77,21 +77,34 @@ $vendedores = $conexion->query("
       box-shadow:0 12px 24px rgba(124,58,237,.25);
       font-size:1.2rem;
     }
-    .hero .title{ font-weight:800; font-size:1.25rem }
-    .hero .sub{ color:var(--muted); font-size:.95rem }
+    .hero .title{ font-weight:800 }
+    .hero .sub{ color:var(--muted) }
+
+    /* Botones accesibles */
+    .btn{
+      border-radius:999px; font-weight:800; border:1px solid var(--border);
+      min-height:44px; padding:.7rem 1rem; letter-spacing:.2px;
+      box-shadow:0 6px 16px rgba(17,24,39,.06);
+      transition:transform .12s ease, filter .12s ease, box-shadow .2s, background .2s, border-color .2s;
+    }
+    .btn:focus-visible{ outline:3px solid var(--ring); outline-offset:2px }
+    .btn-secondary{ background:#fff; color:#0f172a }
+    .btn-secondary:hover{ background:#f6f7fb; transform:translateY(-2px) }
 
     /* KPI cards */
     .kpi{
       border:1px solid var(--border); border-radius:16px; background:var(--panel);
       box-shadow:var(--shadow); padding:16px;
       transition:transform .18s ease, box-shadow .18s ease;
+      height:100%;
     }
     .kpi:hover{ transform:translateY(-3px); box-shadow:0 16px 40px rgba(16,24,40,.10) }
     .kpi .label{ color:#475569; font-weight:700 }
-    .kpi .value{ font-size:1.6rem; font-weight:800; margin-top:4px }
+    .kpi .value{ font-size:clamp(1.3rem,1rem + 1vw,1.6rem); font-weight:800; margin-top:4px }
     .kpi .tag{
       display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px;
       background:#f3f4ff; color:#3730a3; font-weight:700; font-size:.78rem; border:1px solid #e7e7fe;
+      white-space:nowrap;
     }
 
     /* Panel list */
@@ -102,23 +115,23 @@ $vendedores = $conexion->query("
     .panel h5{ font-weight:800; margin-bottom:10px }
 
     .rank li{
-      display:flex; align-items:center; justify-content:space-between;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:#fff;
     }
     .rank li + li{ margin-top:8px }
-    .rank .left{ display:flex; align-items:center; gap:10px; font-weight:700 }
+    .rank .left{ display:flex; align-items:center; gap:10px; font-weight:700; min-width:0 }
+    .rank .left span:last-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60vw }
     .medal{
       width:28px;height:28px;border-radius:999px;display:grid;place-items:center;color:#fff; font-size:.9rem;
       background:linear-gradient(135deg, var(--brand), var(--brand2));
       box-shadow:0 8px 18px rgba(124,58,237,.25);
+      flex:0 0 auto;
     }
 
-    /* Buttons */
-    .btn{
-      border-radius:999px; font-weight:700; border:1px solid var(--border);
+    /* Movimiento reducido */
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none!important; animation:none!important; scroll-behavior:auto!important }
     }
-    .btn-secondary{ background:#fff; color:#0f172a }
-    .btn-secondary:hover{ background:#f6f7fb }
   </style>
 </head>
 <body>
@@ -127,52 +140,52 @@ $vendedores = $conexion->query("
     <div class="hero">
       <div class="icon"><i class="bi bi-graph-up-arrow"></i></div>
       <div class="flex-grow-1">
-        <div class="title">Panel de Reportes Administrativos</div>
-        <div class="sub">Indicadores clave del mes y ranking de vendedores</div>
+        <div class="title fs-fluid-lg">Panel de Reportes Administrativos</div>
+        <div class="sub fs-fluid-sm">Indicadores clave del mes y ranking de vendedores</div>
       </div>
       <a href="dashboard_admin.php" class="btn btn-secondary">
         <i class="bi bi-arrow-left-circle me-1"></i> Volver
       </a>
     </div>
 
-    <!-- KPIs -->
+    <!-- KPIs (2 por fila en móvil, 3 en md+) -->
     <div class="row g-3">
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <div class="kpi">
           <div class="label"><span class="tag">📆 Hoy</span> Ventas del Día</div>
           <div class="value"><?= number_format($ventas_dia ?? 0) ?> <small class="text-muted">unid.</small></div>
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <div class="kpi">
           <div class="label"><span class="tag">📅 Mes</span> Ventas del Mes</div>
           <div class="value"><?= number_format($ventas_mes ?? 0) ?> <small class="text-muted">unid.</small></div>
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <div class="kpi">
           <div class="label"><span class="tag">📦 Telas</span> Compras del Mes</div>
           <div class="value"><?= number_format($compras_mes ?? 0, 2) ?> <small class="text-muted">m</small></div>
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <div class="kpi">
           <div class="label"><span class="tag">💰 Mes</span> Ganancias del Mes</div>
           <div class="value">S/ <?= number_format($ganancias ?? 0, 2) ?></div>
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <div class="kpi">
           <div class="label"><span class="tag">💵 Hoy</span> Ganancias del Día</div>
           <div class="value">S/ <?= number_format($gan_dia ?? 0, 2) ?></div>
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <div class="kpi">
           <div class="label"><span class="tag">👥 RRHH</span> Pagos a Empleados</div>
           <div class="value">S/ <?= number_format($pagos ?? 0, 2) ?></div>

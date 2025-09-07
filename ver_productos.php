@@ -31,7 +31,7 @@ if ($busqueda !== '') {
 <head>
   <meta charset="UTF-8" />
   <title>Productos · Luvadak</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <!-- Bootstrap + Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
@@ -41,7 +41,13 @@ if ($busqueda !== '') {
       --brand:#7c3aed; --brand2:#00d4ff; --ring:rgba(124,58,237,.22);
       --radius:14px; --radius-lg:18px; --shadow:0 12px 28px rgba(16,24,40,.08);
       --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626;
+      --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
     }
+    /* Tipografía fluida */
+    .fs-fluid-sm{ font-size:clamp(.95rem,.9rem + .3vw,1.05rem) }
+    .fs-fluid-md{ font-size:clamp(1.05rem,1rem + .6vw,1.25rem) }
+    .fs-fluid-lg{ font-size:clamp(1.18rem,1.05rem + 1vw,1.5rem) }
+
     body{
       background:
         radial-gradient(900px 520px at -10% -10%, rgba(124,58,237,.10), transparent 45%),
@@ -49,14 +55,18 @@ if ($busqueda !== '') {
         var(--bg);
       color:var(--text);
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      padding-bottom:max(10px,var(--safe-bottom));
     }
-    .wrap{ max-width:1200px; margin:28px auto; padding:0 16px }
+    .wrap{ max-width:1200px; margin:calc(18px + var(--safe-top)) auto 28px; padding:0 16px }
 
-    /* Hero / encabezado */
+    /* Hero / encabezado (sticky en móvil) */
     .hero{
+      position:sticky; top:0; z-index:10;
       display:flex; gap:12px; align-items:center; flex-wrap:wrap;
       background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg);
-      padding:16px; box-shadow:var(--shadow); margin-bottom:18px;
+      padding:12px 14px; box-shadow:var(--shadow); margin-bottom:18px;
+      backdrop-filter:saturate(120%) blur(6px);
     }
     .hero .icon{
       width:52px; height:52px; border-radius:14px; display:grid; place-items:center; color:#fff;
@@ -66,23 +76,45 @@ if ($busqueda !== '') {
     .hero .title{ font-weight:800; font-size:1.25rem }
     .hero .sub{ color:var(--muted); font-size:.95rem }
 
-    .btn{ border-radius:999px; font-weight:700; border:1px solid var(--border) }
+    /* Botones accesibles */
+    .btn{
+      border-radius:999px; font-weight:800; border:1px solid var(--border);
+      min-height:44px; padding:.7rem 1rem; letter-spacing:.2px;
+      box-shadow:0 6px 16px rgba(17,24,39,.06);
+      transition:transform .12s ease, filter .12s ease, box-shadow .2s, background .2s, border-color .2s;
+    }
+    .btn:focus-visible{ outline:3px solid var(--ring); outline-offset:2px }
     .btn-primary{
       background:linear-gradient(135deg, var(--brand), var(--brand2));
-      border-color:transparent; color:#fff; box-shadow:0 6px 16px rgba(124,58,237,.28);
+      border-color:transparent; color:#fff; box-shadow:0 6px 16px rgba(124,58,237,.22);
     }
+    .btn-primary:hover{ filter:brightness(1.04); transform:translateY(-2px) }
     .btn-secondary{ background:#fff; color:#0f172a; border-color:var(--border) }
-    .btn-warning.btn-sm, .btn-danger.btn-sm{ border-radius:999px; font-weight:700 }
+    .btn-secondary:hover{ background:#f6f7fb; transform:translateY(-2px) }
+    .btn-warning.btn-sm, .btn-danger.btn-sm{
+      min-height:40px; padding:.5rem .85rem; border-radius:999px; font-weight:800;
+    }
+    .btn-warning.btn-sm{
+      background:linear-gradient(135deg, #f59e0b, #fbbf24); border-color:transparent; color:#1f2937;
+      box-shadow:0 6px 14px rgba(245,158,11,.22);
+    }
+    .btn-danger.btn-sm{
+      background:linear-gradient(135deg, #ef4444, #f97316); border-color:transparent; color:#fff;
+      box-shadow:0 6px 14px rgba(239,68,68,.22);
+    }
 
     /* Bloque principal */
     .block{ border:1px solid var(--border); border-radius:var(--radius); background:var(--panel); box-shadow:var(--shadow); overflow:hidden }
-    .block-header{ padding:14px 18px; border-bottom:1px solid var(--border) }
+    .block-header{ padding:14px 18px; border-bottom:1px solid var(--border); background:#fff }
     .block-body{ padding:16px 18px }
 
     /* Buscador */
-    .search-wrap{ max-width:560px; position:relative }
-    .search-wrap .form-control{ height:46px; padding-left:42px; border-radius:999px; border:1px solid var(--border) }
-    .search-wrap .form-control:focus{ box-shadow:0 0 0 3px var(--ring); border-color:transparent }
+    .search-wrap{ max-width:560px; position:relative; width:100% }
+    .search-wrap .form-control{
+      height:46px; padding-left:42px; border-radius:999px; border:1px solid var(--border);
+      box-shadow:0 6px 16px rgba(17,24,39,.06);
+    }
+    .search-wrap .form-control:focus{ box-shadow:0 0 0 4px var(--ring); border-color:transparent }
     .search-wrap .icon{ position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--brand) }
 
     /* Tabla */
@@ -94,14 +126,38 @@ if ($busqueda !== '') {
     .badge-stock{ font-weight:800 }
     .stock-ok{ color:var(--ok) } .stock-low{ color:var(--warn) } .stock-zero{ color:var(--bad) }
 
+    /* Scrollbar suave en desktop/tablet */
+    .table-responsive{ scrollbar-width:thin }
+    .table-responsive::-webkit-scrollbar{ height:8px }
+    .table-responsive::-webkit-scrollbar-thumb{ background:#d9def0; border-radius:999px }
+
     /* ===== Responsive: tarjetas en móvil ===== */
     @media (max-width: 768px){
-      .table-card table, .table-card thead, .table-card tbody, .table-card th, .table-card td, .table-card tr{ display:block; width:100% }
-      thead{ display:none }
-      .table-card tr{ margin-bottom:12px; border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow:var(--shadow) }
+      .block-header form{ gap:10px }
+      .block-header .btn{ flex:1 1 auto }
+
+      /* ✅ No incluir thead aquí, para poder ocultarlo */
+      .table-card table, .table-card tbody, .table-card th, .table-card td, .table-card tr{
+        display:block; width:100%;
+      }
+
+      /* ✅ Ocultar encabezado en móvil (más específico) */
+      .table-card thead{ display:none !important; }
+      .table-card thead.sticky th{ position:static !important; }
+
+      .table-card tr{
+        margin-bottom:12px; border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow:var(--shadow); background:#fff;
+      }
       .table-card td{ border:none; padding:6px 0; text-align:left; white-space:normal }
       .table-card td::before{ content:attr(data-label); display:block; font-weight:700; color:var(--muted); margin-bottom:2px }
-      .actions{ justify-content:flex-start !important; gap:.5rem }
+
+      .actions{ display:grid !important; grid-template-columns:1fr 1fr; gap:.6rem; justify-content:stretch !important }
+      .actions .btn{ width:100% }
+    }
+
+    /* Movimiento reducido */
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none!important; animation:none!important; scroll-behavior:auto!important }
     }
   </style>
 </head>
@@ -111,8 +167,8 @@ if ($busqueda !== '') {
     <div class="hero">
       <div class="icon"><i class="bi bi-box-seam-fill"></i></div>
       <div class="flex-grow-1">
-        <div class="title">Lista de Productos Registrados</div>
-        <div class="sub">Búsqueda por nombre o categoría, con acciones rápidas</div>
+        <div class="title fs-fluid-lg">Lista de Productos Registrados</div>
+        <div class="sub fs-fluid-sm">Búsqueda por nombre o categoría, con acciones rápidas</div>
       </div>
       <div class="d-none d-sm-flex">
         <a href="<?= $_SESSION['rol'] === 'admin' ? 'dashboard_admin.php' : 'dashboard_empleado.php' ?>" class="btn btn-secondary">
@@ -136,7 +192,7 @@ if ($busqueda !== '') {
               autocomplete="off"
             />
           </div>
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 flex-wrap">
             <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i>&nbsp;Buscar</button>
             <a href="<?= htmlspecialchars(strtok($_SERVER['REQUEST_URI'], '?')) ?>" class="btn btn-secondary">
               <i class="bi bi-arrow-clockwise"></i>&nbsp;Limpiar
